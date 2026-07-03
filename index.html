@@ -2,23 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SV SCRIPTS</title>
 
 <style>
 body{
 margin:0;
-font-family:Arial,sans-serif;
+font-family:Arial;
 background:#111;
 color:white;
 }
 
 header{
-text-align:center;
 padding:30px;
+text-align:center;
 font-size:32px;
-font-weight:bold;
 background:#1a1a1a;
+font-weight:bold;
 }
 
 .shop{
@@ -41,7 +41,6 @@ box-shadow:0 0 15px rgba(255,255,255,.15);
 width:100%;
 height:220px;
 object-fit:cover;
-display:block;
 }
 
 .info{
@@ -59,8 +58,8 @@ margin-bottom:15px;
 }
 
 .price{
-font-size:20px;
 color:lime;
+font-size:20px;
 margin-bottom:15px;
 }
 
@@ -71,33 +70,24 @@ border:none;
 border-radius:10px;
 background:#4a7cff;
 color:white;
-font-size:16px;
 cursor:pointer;
 }
 
-.box{
+#success{
 display:none;
-background:#222;
-padding:25px;
-width:300px;
-border-radius:15px;
 text-align:center;
-margin:auto;
-margin-bottom:50px;
-box-shadow:0 0 15px rgba(255,255,255,.15);
+padding:40px;
 }
 
-input{
+textarea{
 width:90%;
-padding:12px;
-margin:8px;
-border:none;
-border-radius:10px;
-background:#333;
+height:100px;
+background:#222;
 color:white;
+border:none;
+padding:10px;
 }
 </style>
-
 </head>
 
 <body>
@@ -109,16 +99,25 @@ SV SCRIPTS
 <div class="shop">
 
 <div class="card">
+
 <img src="IMG_0205.jpeg">
 
 <div class="info">
-<div class="title">TP Bat</div>
+
+<div class="title">
+TP Bat
+</div>
+
 <div class="desc">
 HELPS BYPASS ANTI BAT
 </div>
-<div class="price">$1</div>
 
-<button class="button" onclick="showCheckout('TP Bat','$1')">
+<div class="price">
+$1
+</div>
+
+<button class="button"
+onclick="buy('TP Bat')">
 PURCHASE
 </button>
 
@@ -127,16 +126,25 @@ PURCHASE
 
 
 <div class="card">
+
 <img src="IMG_0205.jpeg">
 
 <div class="info">
-<div class="title">Duel Script</div>
+
+<div class="title">
+Duel Script
+</div>
+
 <div class="desc">
 DUEL SCRIPT INCLUDES ANTI BAT AND OTHER SCRIPTS
 </div>
-<div class="price">$5</div>
 
-<button class="button" onclick="showCheckout('Duel Script','$5')">
+<div class="price">
+$5
+</div>
+
+<button class="button"
+onclick="buy('Duel Script')">
 PURCHASE
 </button>
 
@@ -145,52 +153,52 @@ PURCHASE
 
 </div>
 
+<div id="success">
 
-<div class="box" id="checkoutBox">
+<h1>✅ Purchase Successful</h1>
 
-<h2>🛒 Checkout</h2>
+<p>Your script:</p>
 
-<p id="itemName"></p>
+<textarea id="scriptBox">
+YOUR SCRIPT GOES HERE
+</textarea>
 
-<input id="card" placeholder="Card Number">
-<input id="date" placeholder="MM/YY">
-<input id="cvv" placeholder="CVV">
+<br><br>
 
-<button class="button" onclick="pay()">
-Pay Now
+<button class="button"
+onclick="copyScript()">
+Copy Script
 </button>
 
 </div>
 
-
 <script>
 
-function showCheckout(item,price){
+function buy(item){
 
-document.getElementById("checkoutBox").style.display="block";
+/*
+REPLACE THIS LATER WITH STRIPE:
 
-document.getElementById("itemName").innerText=
-item+" - "+price;
+window.location.href="YOUR_STRIPE_LINK"
 
-window.scrollTo({
-top:document.body.scrollHeight,
-behavior:"smooth"
-});
+*/
+
+document.querySelector(".shop").style.display="none";
+
+document.getElementById("success").style.display="block";
 
 }
 
-function pay(){
+function copyScript(){
 
-let card=document.getElementById("card").value;
-let date=document.getElementById("date").value;
-let cvv=document.getElementById("cvv").value;
+let script=
+document.getElementById("scriptBox");
 
-if(card==""||date==""||cvv==""){
-alert("Fill all fields");
-return;
-}
+script.select();
 
-alert("✅ Fake payment successful");
+navigator.clipboard.writeText(script.value);
+
+alert("Script copied!");
 
 }
 
