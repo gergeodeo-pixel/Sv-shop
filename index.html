@@ -1,0 +1,2487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Business Money Manager</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,sans-serif;
+}
+
+:root{
+    --bg:#fff;
+    --card:#f7f7f7;
+    --text:#111;
+    --muted:#777;
+    --border:#ddd;
+    --button:#111;
+    --buttonText:#fff;
+    --green:#16a34a;
+}
+
+body.dark{
+    --bg:#0c0c0c;
+    --card:#181818;
+    --text:#fff;
+    --muted:#999;
+    --border:#303030;
+    --button:#fff;
+    --buttonText:#111;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+}
+
+button{
+    border:0;
+    border-radius:11px;
+    padding:11px 15px;
+    background:var(--button);
+    color:var(--buttonText);
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.secondary{
+    background:var(--card);
+    color:var(--text);
+    border:1px solid var(--border);
+}
+
+input{
+    width:100%;
+    padding:13px;
+    border-radius:11px;
+    border:1px solid var(--border);
+    background:var(--bg);
+    color:var(--text);
+    font-size:16px;
+}
+
+.auth{
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:var(--bg);
+}
+
+.auth.hidden{
+    display:none;
+}
+
+.auth-card{
+    width:100%;
+    max-width:390px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:22px;
+    padding:28px;
+}
+
+.auth-card h1{
+    margin-bottom:8px;
+}
+
+.auth-card p{
+    color:var(--muted);
+    margin-bottom:22px;
+}
+
+.auth-tabs{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-bottom:20px;
+}
+
+.auth-tabs button:not(.active){
+    background:transparent;
+    color:var(--text);
+    border:1px solid var(--border);
+}
+
+.field{
+    margin-bottom:15px;
+}
+
+.field label{
+    display:block;
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:6px;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+    padding:10px;
+    border-radius:10px;
+    font-size:13px;
+    margin-bottom:14px;
+    display:none;
+}
+
+header{
+    position:sticky;
+    top:0;
+    z-index:50;
+    background:var(--bg);
+    border-bottom:1px solid var(--border);
+    padding:14px;
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.logo{
+    font-size:20px;
+    font-weight:bold;
+    white-space:nowrap;
+}
+
+.user{
+    color:var(--muted);
+    font-size:13px;
+    margin-left:auto;
+}
+
+nav{
+    display:flex;
+    gap:7px;
+    overflow-x:auto;
+}
+
+nav button{
+    white-space:nowrap;
+}
+
+main{
+    max-width:1100px;
+    margin:auto;
+    padding:25px 16px 60px;
+}
+
+.page{
+    display:none;
+}
+
+.page.active{
+    display:block;
+}
+
+.title{
+    font-size:28px;
+    font-weight:bold;
+}
+
+.subtitle{
+    color:var(--muted);
+    margin:5px 0 22px;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:14px;
+}
+
+.card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:17px;
+    padding:20px;
+}
+
+.card-title{
+    color:var(--muted);
+    font-size:13px;
+    margin-bottom:8px;
+}
+
+.big{
+    font-size:30px;
+    font-weight:bold;
+}
+
+.green{
+    color:var(--green);
+}
+
+.section{
+    margin-top:20px;
+}
+
+.progress{
+    height:13px;
+    background:var(--border);
+    border-radius:20px;
+    overflow:hidden;
+    margin-top:15px;
+}
+
+.progress-bar{
+    height:100%;
+    width:0;
+    background:var(--green);
+}
+
+.goal-info{
+    display:flex;
+    justify-content:space-between;
+    color:var(--muted);
+    font-size:12px;
+    margin-top:8px;
+}
+
+/* CALENDAR */
+
+.calendar-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+}
+
+.month{
+    font-size:21px;
+    font-weight:bold;
+}
+
+.calendar{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:6px;
+}
+
+.weekday{
+    text-align:center;
+    color:var(--muted);
+    font-size:12px;
+    padding:8px 0;
+    font-weight:bold;
+}
+
+.day{
+    min-height:95px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:8px;
+    cursor:pointer;
+}
+
+.day.empty{
+    background:transparent;
+    border:0;
+    cursor:default;
+}
+
+.day.today{
+    outline:2px solid var(--text);
+}
+
+.day-money{
+    margin-top:16px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.day-actual{
+    margin-top:4px;
+    color:var(--green);
+    font-size:10px;
+}
+
+/* ANALYTICS */
+
+.live{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:15px;
+    padding:15px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-bottom:18px;
+}
+
+.dot{
+    width:11px;
+    height:11px;
+    border-radius:50%;
+    background:#22c55e;
+}
+
+.small{
+    color:var(--muted);
+    font-size:12px;
+}
+
+.chart{
+    margin-top:18px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:17px;
+    padding:18px;
+}
+
+.chart h2{
+    font-size:19px;
+    margin-bottom:4px;
+}
+
+.chart-box{
+    height:300px;
+    margin-top:15px;
+}
+
+/* MODAL */
+
+.modal{
+    position:fixed;
+    inset:0;
+    z-index:500;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.65);
+    padding:20px;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-card{
+    width:100%;
+    max-width:420px;
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:22px;
+}
+
+.close{
+    float:right;
+    background:transparent;
+    color:var(--text);
+    font-size:22px;
+    padding:0 5px;
+}
+
+.modal-buttons{
+    display:flex;
+    gap:10px;
+}
+
+.modal-buttons button{
+    flex:1;
+}
+
+@media(max-width:700px){
+
+    header{
+        flex-wrap:wrap;
+    }
+
+    .user{
+        margin-left:0;
+    }
+
+    nav{
+        width:100%;
+    }
+
+    nav button{
+        font-size:12px;
+        padding:10px 9px;
+    }
+
+    .day{
+        min-height:70px;
+        padding:5px;
+    }
+
+    .day-money{
+        margin-top:8px;
+        font-size:10px;
+    }
+
+    .day-actual{
+        font-size:9px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ACCOUNT SCREEN -->
+
+<div class="auth" id="authScreen">
+
+    <div class="auth-card">
+
+        <div style="font-size:42px;margin-bottom:8px;">💰</div>
+
+        <h1>Business Manager</h1>
+
+        <p>
+            Choose a username to enter your business dashboard.
+        </p>
+
+        <div class="auth-tabs">
+
+            <button
+                id="loginTab"
+                class="active"
+                onclick="authMode('login')"
+            >
+                Continue
+            </button>
+
+            <button
+                id="createTab"
+                onclick="authMode('create')"
+            >
+                New Account
+            </button>
+
+        </div>
+
+        <div
+            class="error"
+            id="authError"
+        ></div>
+
+        <!-- LOGIN -->
+
+        <div id="loginForm">
+
+            <div class="field">
+
+                <label>Username</label>
+
+                <input
+                    id="loginUsername"
+                    maxlength="30"
+                    placeholder="Your username"
+                >
+
+            </div>
+
+            <button
+                style="width:100%;"
+                onclick="continueAccount()"
+            >
+                Continue
+            </button>
+
+        </div>
+
+        <!-- CREATE -->
+
+        <div
+            id="createForm"
+            style="display:none;"
+        >
+
+            <div class="field">
+
+                <label>Choose a username</label>
+
+                <input
+                    id="newUsername"
+                    maxlength="30"
+                    placeholder="Example: Xavier123"
+                >
+
+            </div>
+
+            <button
+                style="width:100%;"
+                onclick="createLocalAccount()"
+            >
+                Create Account
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<header>
+
+    <div class="logo">
+        💰 Business Manager
+    </div>
+
+    <div
+        class="user"
+        id="currentUser"
+    ></div>
+
+    <nav>
+
+        <button onclick="page('home')">
+            Home
+        </button>
+
+        <button onclick="page('calendar')">
+            Calendar
+        </button>
+
+        <button
+            id="analyticsButton"
+            style="display:none;"
+            onclick="page('analytics')"
+        >
+            📊 Analytics
+        </button>
+
+        <button
+            class="secondary"
+            onclick="darkMode()"
+        >
+            🌙
+        </button>
+
+        <button
+            class="secondary"
+            onclick="logout()"
+        >
+            Log Out
+        </button>
+
+    </nav>
+
+</header>
+
+
+<main>
+
+<!-- HOME -->
+
+<section
+    id="home"
+    class="page active"
+>
+
+    <div class="title">
+        Business Overview
+    </div>
+
+    <div class="subtitle">
+        Plan your money and track your goals.
+    </div>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-title">
+                Planned Income
+            </div>
+
+            <div
+                class="big"
+                id="planned"
+            >
+                $0.00
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Actual Income
+            </div>
+
+            <div
+                class="big green"
+                id="actual"
+            >
+                $0.00
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Business Goal
+            </div>
+
+            <div
+                class="big"
+                id="goal"
+            >
+                $0.00
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Remaining
+            </div>
+
+            <div
+                class="big"
+                id="remaining"
+            >
+                $0.00
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card section">
+
+        <h2>🎯 Business Goal</h2>
+
+        <div
+            class="field"
+            style="margin-top:15px;"
+        >
+
+            <label>
+                Your target
+            </label>
+
+            <input
+                id="goalInput"
+                type="number"
+                min="0"
+                step=".01"
+                placeholder="1000"
+            >
+
+        </div>
+
+        <button onclick="saveGoal()">
+            Save Goal
+        </button>
+
+
+        <div class="progress">
+
+            <div
+                class="progress-bar"
+                id="progress"
+            ></div>
+
+        </div>
+
+        <div class="goal-info">
+
+            <span id="percent">
+                0% complete
+            </span>
+
+            <span id="made">
+                $0 made
+            </span>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- CALENDAR -->
+
+<section
+    id="calendar"
+    class="page"
+>
+
+    <div class="title">
+        Money Calendar
+    </div>
+
+    <div class="subtitle">
+        Tap any day to decide how much you plan to make.
+    </div>
+
+
+    <div class="calendar-head">
+
+        <button
+            class="secondary"
+            onclick="monthChange(-1)"
+        >
+            ←
+        </button>
+
+        <div
+            class="month"
+            id="monthTitle"
+        ></div>
+
+        <button
+            class="secondary"
+            onclick="monthChange(1)"
+        >
+            →
+        </button>
+
+    </div>
+
+
+    <div
+        class="calendar"
+        id="calendarGrid"
+    ></div>
+
+</section>
+
+
+<!-- ANALYTICS -->
+
+<section
+    id="analytics"
+    class="page"
+>
+
+    <div class="title">
+        📊 Website Analytics
+    </div>
+
+    <div class="subtitle">
+        Your website's anonymous activity.
+    </div>
+
+
+    <div class="live">
+
+        <div class="dot"></div>
+
+        <div>
+
+            <strong id="connection">
+                Connecting...
+            </strong>
+
+            <div
+                class="small"
+                id="lastUpdated"
+            >
+                Waiting for data
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-title">
+                🔴 Concurrent Users
+            </div>
+
+            <div
+                class="big"
+                id="concurrent"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                👥 Users This Week
+            </div>
+
+            <div
+                class="big"
+                id="weeklyUsers"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                🔄 Returned Users
+            </div>
+
+            <div
+                class="big"
+                id="returned"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                📈 Retention
+            </div>
+
+            <div
+                class="big"
+                id="retention"
+            >
+                0%
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="chart">
+
+        <h2>
+            Concurrent Users
+        </h2>
+
+        <div class="small">
+            Users online at the same time.
+        </div>
+
+        <div class="chart-box">
+            <canvas id="concurrentChart"></canvas>
+        </div>
+
+    </div>
+
+
+    <div class="chart">
+
+        <h2>
+            Users During The Week
+        </h2>
+
+        <div class="small">
+            Unique users active each day.
+        </div>
+
+        <div class="chart-box">
+            <canvas id="weeklyChart"></canvas>
+        </div>
+
+    </div>
+
+</section>
+
+</main>
+
+
+<!-- DATE MODAL -->
+
+<div
+    class="modal"
+    id="dateModal"
+>
+
+    <div class="modal-card">
+
+        <button
+            class="close"
+            onclick="closeModal()"
+        >
+            ×
+        </button>
+
+        <h2
+            id="modalTitle"
+            style="margin-bottom:18px;"
+        ></h2>
+
+
+        <div class="field">
+
+            <label>
+                How much will I make?
+            </label>
+
+            <input
+                id="expected"
+                type="number"
+                min="0"
+                step=".01"
+                placeholder="0"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                How much did I actually make?
+            </label>
+
+            <input
+                id="actualInput"
+                type="number"
+                min="0"
+                step=".01"
+                placeholder="0"
+            >
+
+        </div>
+
+
+        <div class="modal-buttons">
+
+            <button onclick="saveDay()">
+                Save
+            </button>
+
+            <button
+                class="secondary"
+                onclick="clearDay()"
+            >
+                Clear
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   FIREBASE
+   ONLY USED FOR ANALYTICS
+========================================================= */
+
+const DATABASE_URL =
+    "https://app-1-2f56b-default-rtdb.firebaseio.com/";
+
+
+let firebaseDatabase=null;
+
+
+/*
+   No Firebase API key.
+   No Firebase Authentication.
+*/
+
+try{
+
+    firebase.initializeApp({
+        databaseURL:DATABASE_URL
+    });
+
+    firebaseDatabase =
+        firebase.database();
+
+}catch(error){
+
+    console.log(
+        "Firebase analytics unavailable",
+        error
+    );
+
+}
+
+
+/* =========================================================
+   ACCOUNT SYSTEM
+========================================================= */
+
+let username =
+    localStorage.getItem(
+        "businessUsername"
+    );
+
+
+const OWNER =
+    "cheezlove22";
+
+
+function normalizeName(name){
+
+    return name
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g,"");
+
+}
+
+
+function showError(text){
+
+    const box =
+        document.getElementById(
+            "authError"
+        );
+
+    box.textContent=text;
+
+    box.style.display =
+        text ? "block" : "none";
+
+}
+
+
+function authMode(mode){
+
+    showError("");
+
+
+    const login =
+        mode==="login";
+
+
+    document
+    .getElementById("loginForm")
+    .style.display =
+        login ? "block":"none";
+
+
+    document
+    .getElementById("createForm")
+    .style.display =
+        login ? "none":"block";
+
+
+    document
+    .getElementById("loginTab")
+    .classList.toggle(
+        "active",
+        login
+    );
+
+
+    document
+    .getElementById("createTab")
+    .classList.toggle(
+        "active",
+        !login
+    );
+
+}
+
+
+/*
+   Accounts are local because there is no authentication
+   system in this version.
+*/
+
+function createLocalAccount(){
+
+    showError("");
+
+
+    const name =
+        normalizeName(
+            document
+            .getElementById("newUsername")
+            .value
+        );
+
+
+    if(name.length < 3){
+
+        showError(
+            "Username must be at least 3 characters."
+        );
+
+        return;
+
+    }
+
+
+    /*
+       Save only the username.
+    */
+
+    localStorage.setItem(
+        "businessUsername",
+        name
+    );
+
+
+    username=name;
+
+    startApp();
+
+}
+
+
+function continueAccount(){
+
+    showError("");
+
+
+    const name =
+        normalizeName(
+            document
+            .getElementById("loginUsername")
+            .value
+        );
+
+
+    if(name.length < 3){
+
+        showError(
+            "Enter your username."
+        );
+
+        return;
+
+    }
+
+
+    localStorage.setItem(
+        "businessUsername",
+        name
+    );
+
+
+    username=name;
+
+    startApp();
+
+}
+
+
+function logout(){
+
+    localStorage.removeItem(
+        "businessUsername"
+    );
+
+    location.reload();
+
+}
+
+
+/* =========================================================
+   START APP
+========================================================= */
+
+function startApp(){
+
+    document
+    .getElementById("authScreen")
+    .classList
+    .add("hidden");
+
+
+    document
+    .getElementById("currentUser")
+    .textContent =
+        "@"+username;
+
+
+    /*
+       Only the owner gets the analytics tab.
+    */
+
+    if(
+        username.toLowerCase()===
+        OWNER
+    ){
+
+        document
+        .getElementById(
+            "analyticsButton"
+        )
+        .style.display="block";
+
+    }
+
+
+    loadMoney();
+
+    updateHome();
+
+    renderCalendar();
+
+    recordAnalyticsPresence();
+
+}
+
+
+if(username){
+
+    startApp();
+
+}
+
+
+/* =========================================================
+   LOCAL BUSINESS DATA
+========================================================= */
+
+let moneyData={};
+
+let goalAmount=0;
+
+
+function storageName(){
+
+    return (
+        "business_"+username
+    );
+
+}
+
+
+function loadMoney(){
+
+    const saved =
+        localStorage.getItem(
+            storageName()
+        );
+
+
+    moneyData =
+        saved
+        ? JSON.parse(saved)
+        : {};
+
+
+    goalAmount =
+        Number(
+            localStorage.getItem(
+                storageName()+"_goal"
+            ) || 0
+        );
+
+}
+
+
+function saveMoney(){
+
+    localStorage.setItem(
+        storageName(),
+        JSON.stringify(
+            moneyData
+        )
+    );
+
+
+    localStorage.setItem(
+        storageName()+"_goal",
+        goalAmount
+    );
+
+}
+
+
+/* =========================================================
+   HOME
+========================================================= */
+
+function dollars(number){
+
+    return "$"+
+        Number(number||0)
+        .toLocaleString(
+            "en-US",
+            {
+                minimumFractionDigits:2,
+                maximumFractionDigits:2
+            }
+        );
+
+}
+
+
+function updateHome(){
+
+    let planned=0;
+    let actual=0;
+
+
+    Object.values(
+        moneyData
+    )
+    .forEach(item=>{
+
+        planned +=
+            Number(
+                item.expected||0
+            );
+
+        actual +=
+            Number(
+                item.actual||0
+            );
+
+    });
+
+
+    document
+    .getElementById("planned")
+    .textContent =
+        dollars(planned);
+
+
+    document
+    .getElementById("actual")
+    .textContent =
+        dollars(actual);
+
+
+    document
+    .getElementById("goal")
+    .textContent =
+        dollars(goalAmount);
+
+
+    document
+    .getElementById("remaining")
+    .textContent =
+        dollars(
+            Math.max(
+                0,
+                goalAmount-actual
+            )
+        );
+
+
+    document
+    .getElementById("goalInput")
+    .value =
+        goalAmount || "";
+
+
+    const percentage =
+        goalAmount>0
+        ? Math.min(
+            100,
+            actual/goalAmount*100
+        )
+        : 0;
+
+
+    document
+    .getElementById("progress")
+    .style.width =
+        percentage+"%";
+
+
+    document
+    .getElementById("percent")
+    .textContent =
+        percentage.toFixed(1)+
+        "% complete";
+
+
+    document
+    .getElementById("made")
+    .textContent =
+        dollars(actual)+" made";
+
+}
+
+
+function saveGoal(){
+
+    goalAmount =
+        Number(
+            document
+            .getElementById("goalInput")
+            .value || 0
+        );
+
+
+    saveMoney();
+
+    updateHome();
+
+}
+
+
+/* =========================================================
+   CALENDAR
+========================================================= */
+
+let calendarDate =
+    new Date();
+
+let selectedDate=null;
+
+
+function dateKey(date){
+
+    return (
+        date.getFullYear()+
+        "-"+
+        String(
+            date.getMonth()+1
+        ).padStart(2,"0")+
+        "-"+
+        String(
+            date.getDate()
+        ).padStart(2,"0")
+    );
+
+}
+
+
+function monthChange(amount){
+
+    calendarDate.setMonth(
+        calendarDate.getMonth()+amount
+    );
+
+    renderCalendar();
+
+}
+
+
+function renderCalendar(){
+
+    loadMoney();
+
+
+    const grid =
+        document
+        .getElementById(
+            "calendarGrid"
+        );
+
+
+    grid.innerHTML="";
+
+
+    const year =
+        calendarDate.getFullYear();
+
+    const month =
+        calendarDate.getMonth();
+
+
+    document
+    .getElementById(
+        "monthTitle"
+    )
+    .textContent =
+        calendarDate.toLocaleDateString(
+            "en-US",
+            {
+                month:"long",
+                year:"numeric"
+            }
+        );
+
+
+    [
+        "Sun",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat"
+    ]
+    .forEach(name=>{
+
+        const element =
+            document.createElement(
+                "div"
+            );
+
+        element.className="weekday";
+
+        element.textContent=name;
+
+        grid.appendChild(element);
+
+    });
+
+
+    const firstDay =
+        new Date(
+            year,
+            month,
+            1
+        ).getDay();
+
+
+    const days =
+        new Date(
+            year,
+            month+1,
+            0
+        ).getDate();
+
+
+    for(
+        let i=0;
+        i<firstDay;
+        i++
+    ){
+
+        const empty =
+            document.createElement(
+                "div"
+            );
+
+        empty.className=
+            "day empty";
+
+        grid.appendChild(empty);
+
+    }
+
+
+    const today =
+        dateKey(new Date());
+
+
+    for(
+        let day=1;
+        day<=days;
+        day++
+    ){
+
+        const key =
+            year+
+            "-"+
+            String(month+1).padStart(2,"0")+
+            "-"+
+            String(day).padStart(2,"0");
+
+
+        const element =
+            document.createElement(
+                "div"
+            );
+
+
+        element.className="day";
+
+
+        if(key===today){
+
+            element.classList.add(
+                "today"
+            );
+
+        }
+
+
+        const number =
+            document.createElement(
+                "div"
+            );
+
+        number.textContent=day;
+
+        element.appendChild(number);
+
+
+        const item =
+            moneyData[key] || {};
+
+
+        const expected =
+            document.createElement(
+                "div"
+            );
+
+        expected.className=
+            "day-money";
+
+        expected.textContent =
+            dollars(
+                item.expected||0
+            );
+
+        element.appendChild(expected);
+
+
+        if(
+            Number(item.actual||0)>0
+        ){
+
+            const made =
+                document.createElement(
+                    "div"
+                );
+
+            made.className=
+                "day-actual";
+
+            made.textContent =
+                "Made "+
+                dollars(item.actual);
+
+            element.appendChild(made);
+
+        }
+
+
+        element.onclick=()=>{
+            openDay(key);
+        };
+
+
+        grid.appendChild(element);
+
+    }
+
+}
+
+
+function openDay(key){
+
+    selectedDate=key;
+
+
+    const item =
+        moneyData[key] || {};
+
+
+    document
+    .getElementById("modalTitle")
+    .textContent =
+        new Date(
+            key+"T12:00:00"
+        ).toLocaleDateString(
+            "en-US",
+            {
+                weekday:"long",
+                month:"long",
+                day:"numeric",
+                year:"numeric"
+            }
+        );
+
+
+    document
+    .getElementById("expected")
+    .value =
+        item.expected || "";
+
+
+    document
+    .getElementById("actualInput")
+    .value =
+        item.actual || "";
+
+
+    document
+    .getElementById("dateModal")
+    .classList
+    .add("show");
+
+}
+
+
+function closeModal(){
+
+    document
+    .getElementById("dateModal")
+    .classList
+    .remove("show");
+
+}
+
+
+function saveDay(){
+
+    if(!selectedDate)
+        return;
+
+
+    moneyData[selectedDate]={
+
+        expected:
+            Number(
+                document
+                .getElementById("expected")
+                .value || 0
+            ),
+
+        actual:
+            Number(
+                document
+                .getElementById("actualInput")
+                .value || 0
+            )
+
+    };
+
+
+    saveMoney();
+
+    closeModal();
+
+    renderCalendar();
+
+    updateHome();
+
+}
+
+
+function clearDay(){
+
+    if(!selectedDate)
+        return;
+
+
+    delete moneyData[selectedDate];
+
+    saveMoney();
+
+    closeModal();
+
+    renderCalendar();
+
+    updateHome();
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function page(name){
+
+    if(
+        name==="analytics" &&
+        username.toLowerCase()!==OWNER
+    ){
+
+        name="home";
+
+    }
+
+
+    document
+    .querySelectorAll(".page")
+    .forEach(section=>{
+        section.classList.remove(
+            "active"
+        );
+    });
+
+
+    document
+    .getElementById(name)
+    .classList.add("active");
+
+
+    if(name==="home")
+        updateHome();
+
+
+    if(name==="calendar")
+        renderCalendar();
+
+
+    if(name==="analytics")
+        loadAnalytics();
+
+}
+
+
+/* =========================================================
+   DARK MODE
+========================================================= */
+
+function darkMode(){
+
+    document
+    .body
+    .classList
+    .toggle("dark");
+
+
+    localStorage.setItem(
+        "businessDark",
+        document.body.classList.contains(
+            "dark"
+        )
+    );
+
+}
+
+
+if(
+    localStorage.getItem(
+        "businessDark"
+    )==="true"
+){
+
+    document
+    .body
+    .classList
+    .add("dark");
+
+}
+
+
+/* =========================================================
+   ANALYTICS
+========================================================= */
+
+/*
+   The database is ONLY for these analytics.
+
+   analytics/
+      daily/
+         YYYY-MM-DD/
+            concurrent
+            users
+
+   presence/
+      anonymousUserID/
+         online
+         lastSeen
+
+   users/
+      anonymousUserID/
+         firstSeen
+         lastSeen
+         activity/
+            YYYY-MM-DD
+*/
+
+
+let anonymousID =
+    localStorage.getItem(
+        "anonymousAnalyticsID"
+    );
+
+
+if(!anonymousID){
+
+    anonymousID =
+        "u_"+
+
+        Math.random()
+        .toString(36)
+        .substring(2)+
+
+        Date.now();
+
+    localStorage.setItem(
+        "anonymousAnalyticsID",
+        anonymousID
+    );
+
+}
+
+
+/*
+   This records this browser as online.
+
+   No name.
+   No email.
+   No password.
+*/
+
+async function recordAnalyticsPresence(){
+
+    if(!firebaseDatabase)
+        return;
+
+
+    const today =
+        dateKey(new Date());
+
+
+    try{
+
+        await firebaseDatabase
+        .ref(
+            "presence/"+anonymousID
+        )
+        .set({
+
+            online:true,
+
+            lastSeen:
+                firebase.database
+                .ServerValue
+                .TIMESTAMP
+
+        });
+
+
+        await firebaseDatabase
+        .ref(
+            "users/"+anonymousID+
+            "/activity/"+today
+        )
+        .set(true);
+
+
+        const userRef =
+            firebaseDatabase
+            .ref(
+                "users/"+anonymousID
+            );
+
+
+        const snapshot =
+            await userRef.once(
+                "value"
+            );
+
+
+        if(!snapshot.exists()){
+
+            await userRef.set({
+
+                firstSeen:
+                    firebase.database
+                    .ServerValue
+                    .TIMESTAMP,
+
+                lastSeen:
+                    firebase.database
+                    .ServerValue
+                    .TIMESTAMP
+
+            });
+
+        }else{
+
+            await userRef
+            .update({
+
+                lastSeen:
+                    firebase.database
+                    .ServerValue
+                    .TIMESTAMP
+
+            });
+
+        }
+
+
+        /*
+           Firebase automatically changes
+           online to false if this browser
+           disconnects.
+        */
+
+        firebaseDatabase
+        .ref(
+            "presence/"+anonymousID+
+            "/online"
+        )
+        .onDisconnect()
+        .set(false);
+
+
+    }catch(error){
+
+        console.log(
+            "Analytics error:",
+            error
+        );
+
+    }
+
+}
+
+
+/*
+   Keep presence alive.
+*/
+
+setInterval(
+    recordAnalyticsPresence,
+    15000
+);
+
+
+/* =========================================================
+   ANALYTICS LOAD
+========================================================= */
+
+let concurrentChart=null;
+let weeklyChart=null;
+
+
+function mondayOfWeek(offset){
+
+    const now =
+        new Date();
+
+
+    const day =
+        now.getDay();
+
+
+    const monday =
+        new Date(now);
+
+
+    monday.setDate(
+        now.getDate()-
+        (day===0 ? 6 : day-1)+
+        offset*7
+    );
+
+
+    monday.setHours(
+        0,0,0,0
+    );
+
+
+    return monday;
+
+}
+
+
+function weekDays(offset){
+
+    const monday =
+        mondayOfWeek(offset);
+
+
+    const result=[];
+
+
+    for(
+        let i=0;
+        i<7;
+        i++
+    ){
+
+        const day =
+            new Date(monday);
+
+
+        day.setDate(
+            monday.getDate()+i
+        );
+
+
+        result.push(day);
+
+    }
+
+
+    return result;
+
+}
+
+
+async function loadAnalytics(){
+
+    if(
+        username.toLowerCase()!==OWNER
+    ){
+
+        return;
+
+    }
+
+
+    if(!firebaseDatabase){
+
+        document
+        .getElementById("connection")
+        .textContent =
+            "Database unavailable";
+
+        return;
+
+    }
+
+
+    try{
+
+        const [
+            presenceSnapshot,
+            usersSnapshot,
+            dailySnapshot
+        ] =
+        await Promise.all([
+
+            firebaseDatabase
+            .ref("presence")
+            .once("value"),
+
+            firebaseDatabase
+            .ref("users")
+            .once("value"),
+
+            firebaseDatabase
+            .ref("analytics/daily")
+            .once("value")
+
+        ]);
+
+
+        const presence =
+            presenceSnapshot.val()
+            || {};
+
+
+        const users =
+            usersSnapshot.val()
+            || {};
+
+
+        const daily =
+            dailySnapshot.val()
+            || {};
+
+
+        let online=0;
+
+
+        Object.values(
+            presence
+        )
+        .forEach(user=>{
+
+            if(
+                user &&
+                user.online===true
+            ){
+
+                online++;
+
+            }
+
+        });
+
+
+        const thisWeek =
+            weekDays(0)
+            .map(dateKey);
+
+
+        const lastWeek =
+            weekDays(-1)
+            .map(dateKey);
+
+
+        const currentUsers =
+            new Set();
+
+
+        const previousUsers =
+            new Set();
+
+
+        Object.entries(
+            users
+        )
+        .forEach(
+            ([id,user])=>{
+
+                if(
+                    !user ||
+                    !user.activity
+                )
+                    return;
+
+
+                Object.keys(
+                    user.activity
+                )
+                .forEach(day=>{
+
+                    if(
+                        thisWeek.includes(day)
+                    ){
+
+                        currentUsers.add(id);
+
+                    }
+
+
+                    if(
+                        lastWeek.includes(day)
+                    ){
+
+                        previousUsers.add(id);
+
+                    }
+
+                });
+
+            }
+        );
+
+
+        let returned=0;
+
+
+        previousUsers.forEach(id=>{
+
+            if(
+                currentUsers.has(id)
+            ){
+
+                returned++;
+
+            }
+
+        });
+
+
+        const retention =
+            previousUsers.size
+            ? returned/
+              previousUsers.size*
+              100
+            : 0;
+
+
+        document
+        .getElementById("concurrent")
+        .textContent=online;
+
+
+        document
+        .getElementById("weeklyUsers")
+        .textContent=
+            currentUsers.size;
+
+
+        document
+        .getElementById("returned")
+        .textContent=
+            returned;
+
+
+        document
+        .getElementById("retention")
+        .textContent=
+            retention.toFixed(1)+"%";
+
+
+        document
+        .getElementById("connection")
+        .textContent=
+            "Analytics connected";
+
+
+        document
+        .getElementById("lastUpdated")
+        .textContent=
+            "Updated "+
+            new Date()
+            .toLocaleTimeString();
+
+
+        drawAnalytics(
+            daily
+        );
+
+
+    }catch(error){
+
+        console.error(error);
+
+        document
+        .getElementById("connection")
+        .textContent=
+            "Could not load analytics";
+
+    }
+
+}
+
+
+/* =========================================================
+   ANALYTICS CHARTS
+========================================================= */
+
+function drawAnalytics(daily){
+
+    const days =
+        weekDays(0);
+
+
+    const labels =
+        days.map(day=>
+            day.toLocaleDateString(
+                "en-US",
+                {
+                    weekday:"short"
+                }
+            )
+        );
+
+
+    const keys =
+        days.map(dateKey);
+
+
+    const concurrent =
+        keys.map(key=>
+            Number(
+                daily[key]?.concurrent ||
+                daily[key]?.maxConcurrent ||
+                0
+            )
+        );
+
+
+    const active =
+        keys.map(key=>
+            Number(
+                daily[key]?.activeUsers ||
+                daily[key]?.users ||
+                0
+            )
+        );
+
+
+    if(concurrentChart)
+        concurrentChart.destroy();
+
+
+    if(weeklyChart)
+        weeklyChart.destroy();
+
+
+    concurrentChart =
+        new Chart(
+            document
+            .getElementById(
+                "concurrentChart"
+            ),
+            {
+
+                type:"line",
+
+                data:{
+
+                    labels:labels,
+
+                    datasets:[{
+
+                        label:
+                            "Concurrent Users",
+
+                        data:concurrent,
+
+                        tension:.35,
+
+                        fill:true
+
+                    }]
+
+                },
+
+                options:{
+
+                    responsive:true,
+
+                    maintainAspectRatio:false
+
+                }
+
+            }
+        );
+
+
+    weeklyChart =
+        new Chart(
+            document
+            .getElementById(
+                "weeklyChart"
+            ),
+            {
+
+                type:"bar",
+
+                data:{
+
+                    labels:labels,
+
+                    datasets:[{
+
+                        label:
+                            "Active Users",
+
+                        data:active
+
+                    }]
+
+                },
+
+                options:{
+
+                    responsive:true,
+
+                    maintainAspectRatio:false
+
+                }
+
+            }
+        );
+
+}
+
+
+/*
+   Refresh owner analytics every 5 seconds.
+*/
+
+setInterval(()=>{
+
+    if(
+        username &&
+        username.toLowerCase()===OWNER &&
+        document
+        .getElementById("analytics")
+        .classList
+        .contains("active")
+    ){
+
+        loadAnalytics();
+
+    }
+
+},5000);
+
+</script>
+
+</body>
+</html>
